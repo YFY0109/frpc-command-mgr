@@ -84,21 +84,29 @@ def parse_args(args: list):
             })
             args = args[2:]
             while not len(args) == 0:
+                this_option_is_valid = False
                 if args[0] == "-p" or args[0] == "--port" or args[0] == "--bind-port":
                     result["bind_port"] = int(args[1])
                     args = args[2:]
+                    this_option_is_valid = True
                 if args[0] == "-t" or args[0] == "--token":
                     result["token"] = args[1]
                     args = args[2:]
+                    this_option_is_valid = True
                 if args[0] == "-n" or args[0] == "--name":
                     result["name"] = args[1]
                     args = args[2:]
+                    this_option_is_valid = True
                 if args[0] == "-u" or args[0] == "--user":
                     result["user"] = args[1]
                     args = args[2:]
+                    this_option_is_valid = True
                 if args[0] == "--set-default":
                     result["set_default"] = True
                     args = args[1:]
+                    this_option_is_valid = True
+                if not this_option_is_valid:
+                    raise ValueError("Invalid option: " + args[0])
             return result
     if args[0] == "addtunnel" or args[0] == "at":
         pre_args_count = 0
@@ -142,15 +150,21 @@ def parse_args(args: list):
             })
             args = args[pre_args_count:]
             while not len(args) == 0:
+                this_option_is_valid = False
                 if args[0] == "-r" or args[0] == "--remote" or args[0] == "--remote-name":
                     result["remote_name"] = args[1]
                     args = args[2:]
+                    this_option_is_valid = True
                 if args[0] == "-p" or args[0] == "--protocol":
                     result["protocol"] = args[1]
                     args = args[2:]
+                    this_option_is_valid = True
                 if args[0] == "-n" or args[0] == "--name":
                     result["name"] = args[1]
                     args = args[2:]
+                    this_option_is_valid = True
+                if not this_option_is_valid:
+                    raise ValueError("Invalid option: " + args[0])
             return result
     if args[0] == "mossfrp" or args[0] == "mf":
         pre_args_count = 0
@@ -193,12 +207,17 @@ def parse_args(args: list):
         })
         args = args[pre_args_count:]
         while not len(args) == 0:
+            this_option_is_valid = False
             if args[0] == "-p" or args[0] == "--protocol":
                 result["protocol"] = args[1]
                 args = args[2:]
+                this_option_is_valid = True
             if args[0] == "-n" or args[0] == "--name":
                 result["name"] = args[1]
                 args = args[2:]
+                this_option_is_valid = True
+            if not this_option_is_valid:
+                raise ValueError("Invalid option: " + args[0])
         return result
     if args[0] == "listservers" or args[0] == "ls":
         result = {"opcode": "listservers"}
@@ -223,5 +242,5 @@ def parse_args(args: list):
 if __name__ == "__main__":
     # main_args = sys.argv[1:]
     main_args = ["addserver", "sh5.mossfrp.cn", "-p", "15366", "-u", "123", "-n", "test_server", "-t", "test_token",
-                 "--set-default"]
+                 "--set_default"]
     print(parse_args(main_args))
