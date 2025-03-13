@@ -54,6 +54,14 @@ class InterfaceOP:
     def addtunnel() -> dict:
         pass
 
+    @staticmethod
+    def mossfrp(code: str) -> dict:
+        pass
+
+
+def mossfrp_code_parser(code: str) -> dict:
+    pass
+
 
 def parse_args(args: list):
     if len(args) == 0:
@@ -94,7 +102,7 @@ def parse_args(args: list):
                     args = args[1:]
             return result
     if args[0] == "addtunnel":
-        addtunnel_pre_args_count = 0
+        pre_args_count = 0
         result = {"opcode": "addtunnel"}
         if len(args) == 1:
             result.update(InterfaceOP.addtunnel())
@@ -102,26 +110,26 @@ def parse_args(args: list):
         else:
             if Verifier.verify_pos(args[1]):
                 if Verifier.verify_port(args[2]):
-                    addtunnel_pre_args_count = 3
+                    pre_args_count = 3
                     result.update({
                         "local_port": args[1],
                         "remote_port": args[2]
                     })
                 elif not Verifier.verify_port(args[2]):
-                    addtunnel_pre_args_count = 2
+                    pre_args_count = 2
                     result.update({
                         "local_port": args[1],
                         "remote_port": args[1],
                     })
             elif Verifier.verify_ip_with_port(args[1]):
                 if Verifier.verify_port(args[2]):
-                    addtunnel_pre_args_count = 3
+                    pre_args_count = 3
                     result.update({
                         "local_port": args[1].split(":")[1],
                         "remote_port": args[2]
                     })
                 elif not Verifier.verify_port(args[2]):
-                    addtunnel_pre_args_count = 2
+                    pre_args_count = 2
                     result.update({
                         "local_port": args[1].split(":")[1],
                         "remote_port": args[1].split(":")[1],
@@ -133,7 +141,7 @@ def parse_args(args: list):
                 "protocol": "tcp",
                 "name": ""
             })
-            args = args[addtunnel_pre_args_count:]
+            args = args[pre_args_count:]
             while not len(args) == 0:
                 if args[0] == "-r" or args[0] == "--remote" or args[0] == "--remote-name":
                     result["remote_name"] = args[1]
@@ -145,6 +153,57 @@ def parse_args(args: list):
                     result["name"] = args[1]
                     args = args[2:]
             return result
+    if args[0] == "mossfrp":
+        pre_args_count = 0
+        result = {"opcode": "mossfrp"}
+        if len(args) == 1:
+            raise ValueError("No mossfrp code provided")
+        if len(args) == 2:
+            result.update({"token": args[1]})
+            result.update(InterfaceOP.mossfrp(args[1]))
+            return result
+        if Verifier.verify_port(args[2]):
+            result.update({
+                "local_port": args[2],
+                "bind_port": mossfrp_code_parser(args[1])["bind_port"],
+                "token": args[1],
+                "protocol": "tcp"
+                })
+            if 1<=int(args[3])<=10:
+                pre_args_count = 4
+                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][int(args[3])-1]})
+            else:
+                pre_args_count = 3
+                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][0]})
+        elif Verifier.verify_ip_with_port(args[2]):
+            result.update({
+                "local_port": args[2].split(":")[1],
+                "bind_port": mossfrp_code_parser(args[1])["bind_port"],
+                "token": args[1],
+                "protocol": "tcp"
+                })
+            if 1<=int(args[3])<=10:
+                pre_args_count = 4
+                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][int(args[3])-1]})
+            else:
+                pre_args_count = 3
+                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][0]})
+        result.update({
+            "remote_name": "default",
+            "name": ""
+        })
+        args = args[pre_args_count:]
+        while not len(args) == 0:
+            if args[0] == "-p" or args[0] == "--protocol":
+                result["protocol"] = args[1]
+                args = args[2:]
+            if args[0] == "-n" or args[0] == "--name":
+                result["name"] = args[1]
+                args = args[2:]
+        return result
+
+
+
 
 
 if __name__ == "__main__":
