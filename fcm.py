@@ -168,10 +168,10 @@ def parse_args(args: list):
                 "bind_port": mossfrp_code_parser(args[1])["bind_port"],
                 "token": args[1],
                 "protocol": "tcp"
-                })
-            if 1<=int(args[3])<=10:
+            })
+            if 1 <= int(args[3]) <= 10:
                 pre_args_count = 4
-                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][int(args[3])-1]})
+                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][int(args[3]) - 1]})
             else:
                 pre_args_count = 3
                 result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][0]})
@@ -181,10 +181,10 @@ def parse_args(args: list):
                 "bind_port": mossfrp_code_parser(args[1])["bind_port"],
                 "token": args[1],
                 "protocol": "tcp"
-                })
-            if 1<=int(args[3])<=10:
+            })
+            if 1 <= int(args[3]) <= 10:
                 pre_args_count = 4
-                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][int(args[3])-1]})
+                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][int(args[3]) - 1]})
             else:
                 pre_args_count = 3
                 result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][0]})
@@ -219,10 +219,6 @@ def parse_args(args: list):
             raise ValueError("No tunnel name provided")
         result.update({"name": args[1]})
         return result
-
-
-
-
 
 
 if __name__ == "__main__":
