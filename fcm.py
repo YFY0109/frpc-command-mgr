@@ -1,7 +1,6 @@
 import os
 import re
 import socket
-import sys
 
 
 class Verifier:
@@ -80,7 +79,7 @@ def parse_args(args: list):
                 "bind_port": 7000,
                 "token": "",
                 "name": result["server_pos"],
-                "user": socket.gethostname() + os.getlogin(),
+                "user": socket.gethostname() + "." + os.getlogin(),
                 "set_default": False
             })
             args = args[2:]
@@ -222,5 +221,7 @@ def parse_args(args: list):
 
 
 if __name__ == "__main__":
-    main_args = sys.argv[1:]
+    # main_args = sys.argv[1:]
+    main_args = ["addserver", "sh5.mossfrp.cn", "-p", "15366", "-u", "123", "-n", "test_server", "-t", "test_token",
+                 "--set-default"]
     print(parse_args(main_args))
