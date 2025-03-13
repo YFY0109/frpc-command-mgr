@@ -66,7 +66,7 @@ def mossfrp_code_parser(code: str) -> dict:
 def parse_args(args: list):
     if len(args) == 0:
         raise ValueError("No opcode provided")
-    if args[0] == "addserver":
+    if args[0] == "addserver" or args[0] == "as":
         result = {"opcode": "addserver"}
         if len(args) == 1:
             result.update(InterfaceOP.addserver())
@@ -101,7 +101,7 @@ def parse_args(args: list):
                     result["set_default"] = True
                     args = args[1:]
             return result
-    if args[0] == "addtunnel":
+    if args[0] == "addtunnel" or args[0] == "at":
         pre_args_count = 0
         result = {"opcode": "addtunnel"}
         if len(args) == 1:
@@ -153,7 +153,7 @@ def parse_args(args: list):
                     result["name"] = args[1]
                     args = args[2:]
             return result
-    if args[0] == "mossfrp":
+    if args[0] == "mossfrp" or args[0] == "mf":
         pre_args_count = 0
         result = {"opcode": "mossfrp"}
         if len(args) == 1:
@@ -201,6 +201,25 @@ def parse_args(args: list):
                 result["name"] = args[1]
                 args = args[2:]
         return result
+    if args[0] == "listservers" or args[0] == "ls":
+        result = {"opcode": "listservers"}
+        return result
+    if args[0] == "listtunnels" or args[0] == "lt":
+        result = {"opcode": "listtunnels"}
+        return result
+    if args[0] == "delserver" or args[0] == "ds":
+        result = {"opcode": "delserver"}
+        if len(args) == 1:
+            raise ValueError("No server name provided")
+        result.update({"name": args[1]})
+        return result
+    if args[0] == "deltunnel" or args[0] == "dt":
+        result = {"opcode": "deltunnel"}
+        if len(args) == 1:
+            raise ValueError("No tunnel name provided")
+        result.update({"name": args[1]})
+        return result
+
 
 
 

@@ -48,4 +48,8 @@ frpc-command-mgr是一个frpc命令管理工具，可以让你的frp客户端像
 
 `fcm delserver`:删除一个服务端
 
+    fcm delserver <name>           删除指定名称的服务端
+
 `fcm deltunnel`:删除一个隧道
+
+    fcm deltunnel <name>           删除指定名称的隧道
