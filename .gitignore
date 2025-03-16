@@ -168,5 +168,8 @@ cython_debug/
 .idea/
 .idea/*
 
+.vscode/
+.vscode/*
+
 # PyPI configuration file
 .pypirc

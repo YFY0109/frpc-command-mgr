@@ -21,7 +21,10 @@ class Verifier:
 
     @staticmethod
     def verify_port(port: str) -> bool:
-        port = int(port)
+        try:
+            port = int(port)
+        except ValueError:
+            return False
         if 1 <= port <= 65535:
             return True
         return False
@@ -118,30 +121,62 @@ def parse_args(args: list):
             result.update(InterfaceOP.addtunnel())
             return result
         else:
-            if Verifier.verify_pos(args[1]):
-                if Verifier.verify_port(args[2]):
-                    pre_args_count = 3
-                    result.update({"local_port": args[1], "remote_port": args[2]})
-                elif not Verifier.verify_port(args[2]):
+            if Verifier.verify_port(args[1]):
+                if len(args) > 2:
+                    if Verifier.verify_port(args[2]):
+                        pre_args_count = 3
+                        result.update(
+                            {
+                                "local_ip": "127.0.0.1",
+                                "local_port": int(args[1]),
+                                "remote_port": int(args[2]),
+                            }
+                        )
+                    else:
+                        pre_args_count = 2
+                        result.update(
+                            {
+                                "local_ip": "127.0.0.1",
+                                "local_port": int(args[1]),
+                                "remote_port": int(args[1]),
+                            }
+                        )
+                else:
                     pre_args_count = 2
                     result.update(
                         {
-                            "local_port": args[1],
-                            "remote_port": args[1],
+                            "local_port": int(args[1]),
+                            "remote_port": int(args[1]),
+                            "local_ip": "127.0.0.1",
                         }
                     )
             elif Verifier.verify_ip_with_port(args[1]):
-                if Verifier.verify_port(args[2]):
-                    pre_args_count = 3
-                    result.update(
-                        {"local_port": args[1].split(":")[1], "remote_port": args[2]}
-                    )
-                elif not Verifier.verify_port(args[2]):
+                if len(args) > 2:
+                    if Verifier.verify_port(args[2]):
+                        pre_args_count = 3
+                        result.update(
+                            {
+                                "local_ip": args[1].split(":")[0],
+                                "local_port": int(args[1].split(":")[1]),
+                                "remote_port": int(args[2]),
+                            }
+                        )
+                    elif not Verifier.verify_port(args[2]):
+                        pre_args_count = 2
+                        result.update(
+                            {
+                                "local_ip": args[1].split(":")[0],
+                                "local_port": int(args[1].split(":")[1]),
+                                "remote_port": int(args[1].split(":")[1]),
+                            }
+                        )
+                else:
                     pre_args_count = 2
                     result.update(
                         {
-                            "local_port": args[1].split(":")[1],
-                            "remote_port": args[1].split(":")[1],
+                            "local_ip": args[1].split(":")[0],
+                            "local_port": int(args[1].split(":")[1]),
+                            "remote_port": int(args[1].split(":")[1]),
                         }
                     )
             else:
