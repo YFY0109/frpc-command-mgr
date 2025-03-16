@@ -168,8 +168,12 @@ cython_debug/
 .idea/
 .idea/*
 
+# Visual Studio Code
 .vscode/
 .vscode/*
 
 # PyPI configuration file
 .pypirc
+
+#TONGYI Lingma
+.lingma
