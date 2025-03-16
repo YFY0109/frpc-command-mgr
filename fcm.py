@@ -13,14 +13,18 @@ class Verifier:
     @staticmethod
     def verify_domain(domain: str) -> bool:
         if re.match(
-                r"[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+(:[0-9]{1,5})?[-a-zA-Z0-9()@:%_\+\.~#?&//=]*$",
-                domain):
+            r"[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+(:[0-9]{1,5})?[-a-zA-Z0-9()@:%_\+\.~#?&//=]*$",
+            domain,
+        ):
             return True
         return False
 
     @staticmethod
     def verify_port(port: str) -> bool:
-        port = int(port)
+        try:
+            port = int(port)
+        except ValueError:
+            return False
         if 1 <= port <= 65535:
             return True
         return False
@@ -75,13 +79,15 @@ def parse_args(args: list):
                 result.update({"server_pos": args[1]})
             else:
                 raise ValueError("Invalid server position")
-            result.update({
-                "bind_port": 7000,
-                "token": "",
-                "name": result["server_pos"],
-                "user": socket.gethostname() + "." + os.getlogin(),
-                "set_default": False
-            })
+            result.update(
+                {
+                    "bind_port": 7000,
+                    "token": "",
+                    "name": result["server_pos"],
+                    "user": socket.gethostname() + "." + os.getlogin(),
+                    "set_default": False,
+                }
+            )
             args = args[2:]
             while not len(args) == 0:
                 this_option_is_valid = False
@@ -115,43 +121,75 @@ def parse_args(args: list):
             result.update(InterfaceOP.addtunnel())
             return result
         else:
-            if Verifier.verify_pos(args[1]):
-                if Verifier.verify_port(args[2]):
-                    pre_args_count = 3
-                    result.update({
-                        "local_port": args[1],
-                        "remote_port": args[2]
-                    })
-                elif not Verifier.verify_port(args[2]):
+            if Verifier.verify_port(args[1]):
+                if len(args) > 2:
+                    if Verifier.verify_port(args[2]):
+                        pre_args_count = 3
+                        result.update(
+                            {
+                                "local_ip": "127.0.0.1",
+                                "local_port": int(args[1]),
+                                "remote_port": int(args[2]),
+                            }
+                        )
+                    else:
+                        pre_args_count = 2
+                        result.update(
+                            {
+                                "local_ip": "127.0.0.1",
+                                "local_port": int(args[1]),
+                                "remote_port": int(args[1]),
+                            }
+                        )
+                else:
                     pre_args_count = 2
-                    result.update({
-                        "local_port": args[1],
-                        "remote_port": args[1],
-                    })
+                    result.update(
+                        {
+                            "local_port": int(args[1]),
+                            "remote_port": int(args[1]),
+                            "local_ip": "127.0.0.1",
+                        }
+                    )
             elif Verifier.verify_ip_with_port(args[1]):
-                if Verifier.verify_port(args[2]):
-                    pre_args_count = 3
-                    result.update({
-                        "local_port": args[1].split(":")[1],
-                        "remote_port": args[2]
-                    })
-                elif not Verifier.verify_port(args[2]):
+                if len(args) > 2:
+                    if Verifier.verify_port(args[2]):
+                        pre_args_count = 3
+                        result.update(
+                            {
+                                "local_ip": args[1].split(":")[0],
+                                "local_port": int(args[1].split(":")[1]),
+                                "remote_port": int(args[2]),
+                            }
+                        )
+                    elif not Verifier.verify_port(args[2]):
+                        pre_args_count = 2
+                        result.update(
+                            {
+                                "local_ip": args[1].split(":")[0],
+                                "local_port": int(args[1].split(":")[1]),
+                                "remote_port": int(args[1].split(":")[1]),
+                            }
+                        )
+                else:
                     pre_args_count = 2
-                    result.update({
-                        "local_port": args[1].split(":")[1],
-                        "remote_port": args[1].split(":")[1],
-                    })
+                    result.update(
+                        {
+                            "local_ip": args[1].split(":")[0],
+                            "local_port": int(args[1].split(":")[1]),
+                            "remote_port": int(args[1].split(":")[1]),
+                        }
+                    )
             else:
                 raise ValueError("Invalid local or remote position")
-            result.update({
-                "remote_name": "default",
-                "protocol": "tcp",
-                "name": ""
-            })
+            result.update({"remote_name": "default", "protocol": "tcp", "name": ""})
             args = args[pre_args_count:]
             while not len(args) == 0:
                 this_option_is_valid = False
-                if args[0] == "-r" or args[0] == "--remote" or args[0] == "--remote-name":
+                if (
+                    args[0] == "-r"
+                    or args[0] == "--remote"
+                    or args[0] == "--remote-name"
+                ):
                     result["remote_name"] = args[1]
                     args = args[2:]
                     this_option_is_valid = True
@@ -176,35 +214,52 @@ def parse_args(args: list):
             result.update(InterfaceOP.mossfrp(args[1]))
             return result
         if Verifier.verify_port(args[2]):
-            result.update({
-                "local_port": args[2],
-                "bind_port": mossfrp_code_parser(args[1])["bind_port"],
-                "token": args[1],
-                "protocol": "tcp"
-            })
+            result.update(
+                {
+                    "local_port": args[2],
+                    "bind_port": mossfrp_code_parser(args[1])["bind_port"],
+                    "token": args[1],
+                    "protocol": "tcp",
+                }
+            )
             if 1 <= int(args[3]) <= 10:
                 pre_args_count = 4
-                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][int(args[3]) - 1]})
+                result.update(
+                    {
+                        "remote_port": mossfrp_code_parser(args[1])["remote_ports"][
+                            int(args[3]) - 1
+                        ]
+                    }
+                )
             else:
                 pre_args_count = 3
-                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][0]})
+                result.update(
+                    {"remote_port": mossfrp_code_parser(args[1])["remote_ports"][0]}
+                )
         elif Verifier.verify_ip_with_port(args[2]):
-            result.update({
-                "local_port": args[2].split(":")[1],
-                "bind_port": mossfrp_code_parser(args[1])["bind_port"],
-                "token": args[1],
-                "protocol": "tcp"
-            })
+            result.update(
+                {
+                    "local_port": args[2].split(":")[1],
+                    "bind_port": mossfrp_code_parser(args[1])["bind_port"],
+                    "token": args[1],
+                    "protocol": "tcp",
+                }
+            )
             if 1 <= int(args[3]) <= 10:
                 pre_args_count = 4
-                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][int(args[3]) - 1]})
+                result.update(
+                    {
+                        "remote_port": mossfrp_code_parser(args[1])["remote_ports"][
+                            int(args[3]) - 1
+                        ]
+                    }
+                )
             else:
                 pre_args_count = 3
-                result.update({"remote_port": mossfrp_code_parser(args[1])["remote_ports"][0]})
-        result.update({
-            "remote_name": "default",
-            "name": ""
-        })
+                result.update(
+                    {"remote_port": mossfrp_code_parser(args[1])["remote_ports"][0]}
+                )
+        result.update({"remote_name": "default", "name": ""})
         args = args[pre_args_count:]
         while not len(args) == 0:
             this_option_is_valid = False
@@ -241,6 +296,17 @@ def parse_args(args: list):
 
 if __name__ == "__main__":
     # main_args = sys.argv[1:]
-    main_args = ["addserver", "sh5.mossfrp.cn", "-p", "15366", "-u", "123", "-n", "test_server", "-t", "test_token",
-                 "--set_default"]
+    main_args = [
+        "addserver",
+        "sh5.mossfrp.cn",
+        "-p",
+        "15366",
+        "-u",
+        "123",
+        "-n",
+        "test_server",
+        "-t",
+        "test_token",
+        "--set-default",
+    ]
     print(parse_args(main_args))
