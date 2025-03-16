@@ -272,6 +272,6 @@ if __name__ == "__main__":
         "test_server",
         "-t",
         "test_token",
-        "--set_default",
+        "--set-default",
     ]
     print(parse_args(main_args))
