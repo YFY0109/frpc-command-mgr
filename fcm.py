@@ -4,14 +4,27 @@ import socket
 
 
 class Verifier:
+    """
+    所有验证器的逻辑分类（无实际功能）
+    """
     @staticmethod
     def verify_ip(ip: str) -> bool:
+        """
+        校验传入的ip字符串是否符合规范
+        :param ip: ip字符串
+        :return: 是否符合规范
+        """
         if re.match(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", ip):
             return True
         return False
 
     @staticmethod
     def verify_domain(domain: str) -> bool:
+        """
+        校验传入的域名字符串是否符合规范
+        :param domain: 域名字符串
+        :return: 是否符合规范
+        """
         if re.match(
             r"[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+(:[0-9]{1,5})?[-a-zA-Z0-9()@:%_\+\.~#?&//=]*$",
             domain,
@@ -21,6 +34,11 @@ class Verifier:
 
     @staticmethod
     def verify_port(port: str) -> bool:
+        """
+        校验传入的端口字符串是否符合规范
+        :param port: 端口字符串
+        :return: 是否符合规范
+        """
         try:
             port = int(port)
         except ValueError:
@@ -31,6 +49,11 @@ class Verifier:
 
     @staticmethod
     def verify_pos(server_pos: str) -> bool:
+        """
+        校验传入的服务器地址（ip或域名）是否符合规范
+        :param server_pos: 服务器地址
+        :return: 是否符合规范
+        """
         if Verifier.verify_ip(server_pos):
             return True
         if Verifier.verify_domain(server_pos):
@@ -39,6 +62,11 @@ class Verifier:
 
     @staticmethod
     def verify_ip_with_port(ip_with_port: str) -> bool:
+        """
+        校验传入的带有端口的ip地址是否符合标准（形似"192.168.2.2:12345"）
+        :param ip_with_port: 带有端口的ip地址字符串
+        :return: 是否符合规范
+        """
         try:
             ip, port = ip_with_port.split(":")
         except ValueError:
@@ -49,24 +77,50 @@ class Verifier:
 
 
 class InterfaceOP:
+    """
+    所有通过CLI交互式获取数据函数的逻辑分类
+    """
     @staticmethod
     def addserver() -> dict:
+        """
+        addserver的交互式输入
+        :return: 结果
+        """
         pass
 
     @staticmethod
     def addtunnel() -> dict:
+        """
+        addtunnel的交互式输入
+        :return: 结果
+        """
         pass
 
     @staticmethod
     def mossfrp(code: str) -> dict:
+        """
+        mossfrp的交互式输入
+        :param code: mossfrp穿透码（形似"3qd217893567136012195"）
+        :return: 结果
+        """
         pass
 
 
 def mossfrp_code_parser(code: str) -> dict:
+    """
+    解析mossfrp穿透码的逻辑，参考"https://github.com/MossFrp/MossFrpClient-WindowsBat/blob/main/Build/MossFrp_Client.bat"
+    :param code: mossfrp穿透码
+    :return: 解码结果
+    """
     pass
 
 
-def parse_args(args: list):
+def parse_args(args: list[str]) -> dict:
+    """
+    fcm主程序解析传入参数主函数
+    :param args: 传入参数，一般通过sys.argv[1:]获取
+    :return: 向daemon进程发送的json数据字典
+    """
     if len(args) == 0:
         raise ValueError("No opcode provided")
     if args[0] == "addserver" or args[0] == "as":
