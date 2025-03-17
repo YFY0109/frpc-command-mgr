@@ -115,7 +115,7 @@ def mossfrp_code_parser(code: str) -> dict:
     pass
 
 
-def parse_args(args: list[str]) -> dict:
+def parse_args(args: list) -> dict:
     """
     fcm主程序解析传入参数主函数
     :param args: 传入参数，一般通过sys.argv[1:]获取
