@@ -1,4 +1,7 @@
-import unittest, socket, os
+import os
+import socket
+import unittest
+
 from fcm import parse_args
 
 
@@ -57,7 +60,7 @@ class TestFCMParserAddTunnel(unittest.TestCase):
             "name": "",
         }
         output = parse_args(args)
-        print(output)
+        # print(output)
         self.assertEqual(output, except_result)
 
     def test_addtunnel_1_with_options(self):
