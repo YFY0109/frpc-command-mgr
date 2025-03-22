@@ -177,3 +177,9 @@ cython_debug/
 
 #TONGYI Lingma
 .lingma
+
+#Nuitka
+*.dist/
+*.build/
+*.onefile-build/
+*.exe
