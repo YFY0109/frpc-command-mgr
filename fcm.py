@@ -20,22 +20,13 @@ import sys
 
 class Verifier:
     """
-    验证器类：用于验证各种输入参数的有效性
-
-    包含以下验证方法：
-    - verify_ip: 验证IP地址格式
-    - verify_domain: 验证域名格式
-    - verify_port: 验证端口号范围
-    - verify_pos: 验证服务器地址（IP或域名）
-    - verify_ip_with_port: 验证IP:端口格式
+    所有验证器的逻辑分类（无实际功能）
     """
 
     @staticmethod
     def verify_ip(ip: str) -> bool:
         """
         校验传入的ip字符串是否符合规范
-        格式要求：xxx.xxx.xxx.xxx，其中xxx为0-255的数字
-
         :param ip: ip字符串
         :return: 是否符合规范
         """
@@ -47,8 +38,6 @@ class Verifier:
     def verify_domain(domain: str) -> bool:
         """
         校验传入的域名字符串是否符合规范
-        支持标准域名格式，包括子域名和端口号
-
         :param domain: 域名字符串
         :return: 是否符合规范
         """
@@ -63,8 +52,6 @@ class Verifier:
     def verify_port(port: str) -> bool:
         """
         校验传入的端口字符串是否符合规范
-        端口范围：1-65535
-
         :param port: 端口字符串
         :return: 是否符合规范
         """
@@ -80,8 +67,6 @@ class Verifier:
     def verify_pos(server_pos: str) -> bool:
         """
         校验传入的服务器地址（ip或域名）是否符合规范
-        支持IP地址或域名格式
-
         :param server_pos: 服务器地址
         :return: 是否符合规范
         """
@@ -94,9 +79,7 @@ class Verifier:
     @staticmethod
     def verify_ip_with_port(ip_with_port: str) -> bool:
         """
-        校验传入的带有端口的ip地址是否符合标准
-        格式要求：xxx.xxx.xxx.xxx:port
-
+        校验传入的带有端口的ip地址是否符合标准（形似"192.168.2.2:12345"）
         :param ip_with_port: 带有端口的ip地址字符串
         :return: 是否符合规范
         """
@@ -111,33 +94,24 @@ class Verifier:
 
 class InterfaceOP:
     """
-    交互式操作类：提供命令行交互式配置功能
-
-    包含以下方法：
-    - addserver: 交互式添加frp服务端
-    - addtunnel: 交互式添加frp隧道
-    - mossfrp: 交互式使用mossfrp穿透码创建隧道
+    所有通过CLI交互式获取数据函数的逻辑分类
     """
 
     @staticmethod
     def addserver() -> dict:
         """
-        交互式添加frp服务端
-        通过命令行交互获取服务端配置信息
-
-        :return: 包含服务端配置信息的字典
+        addserver的交互式输入
+        :return: 结果
         """
         result = {"opcode": "addserver"}
-
-        # 获取服务器地址
+        
         while True:
             server_pos = input("请输入服务器地址(IP或域名): ").strip()
             if Verifier.verify_pos(server_pos):
                 result["server_pos"] = server_pos
                 break
             print("无效的服务器地址，请重新输入")
-
-        # 获取服务端口
+        
         while True:
             try:
                 bind_port = input("请输入服务端口 [7000]: ").strip()
@@ -149,8 +123,7 @@ class InterfaceOP:
                 raise ValueError()
             except ValueError:
                 print("无效的端口号，请输入1-65535之间的数字")
-
-        # 获取其他配置信息
+        
         token = input("请输入服务端token []: ").strip()
         result["token"] = token
 
@@ -170,10 +143,8 @@ class InterfaceOP:
     @staticmethod
     def addtunnel() -> dict:
         """
-        交互式添加frp隧道
-        通过命令行交互获取隧道配置信息
-
-        :return: 包含隧道配置信息的字典
+        addtunnel的交互式输入
+        :return: 结果
         """
         result = {"opcode": "addtunnel"}
 
@@ -203,8 +174,8 @@ class InterfaceOP:
                 result["remote_port"] = int(remote_port)
                 break
             print("无效的端口号，请输入1-65535之间的数字")
-
-        # 获取其他配置信息
+        
+        # 获取远程服务器名称
         remote_name = input("请输入远程服务器名称 [default]: ").strip()
         result["remote_name"] = remote_name if remote_name else "default"
 
@@ -227,15 +198,13 @@ class InterfaceOP:
     @staticmethod
     def mossfrp(code: str) -> dict:
         """
-        交互式使用mossfrp穿透码创建隧道
-        解析mossfrp穿透码并通过命令行交互获取其他配置信息
-
+        mossfrp的交互式输入
         :param code: mossfrp穿透码
         :return: 包含隧道配置信息的字典
         """
         result = {"opcode": "mossfrp", "token": code}
-
-        # 解析穿透码并显示信息
+        
+        # 解析穿透码
         mossfrp_info = mossfrp_code_parser(code)
         print("\n穿透码信息:")
         print(f"服务器号: {mossfrp_info['服务器号']}")
@@ -284,28 +253,22 @@ class InterfaceOP:
                 result["protocol"] = protocol
                 break
             print("无效的协议类型，请输入tcp或udp")
-
+        
+        # 获取隧道名称
         name = input("请输入隧道名称 []: ").strip()
         result["name"] = name
-
-        # 添加mossfrp特定配置
-        result.update({"bind_port": mossfrp_info["服务端口"], "remote_name": "default"})
-
+        
+        result.update({
+            'bind_port': mossfrp_info['服务端口'],
+            'remote_name': 'default'
+        })
+        
         return result
 
 
 def mossfrp_code_parser(code: str) -> dict:
     """
-    解析mossfrp穿透码的逻辑
-    参考"https://github.com/MossFrp/MossFrpClient-WindowsBat/blob/main/Build/MossFrp_Client.bat"
-
-    穿透码格式说明：
-    1. 第一位：前缀长度（3或4）
-    2. 第2-4/5位：服务器前缀
-    3. 第5/6-9/10位：认证密钥
-    4. 第10/11-14/15位：加密的服务端口
-    5. 第15/16-21/22位：加密的服务器号
-
+    解析mossfrp穿透码的逻辑，参考"https://github.com/MossFrp/MossFrpClient-WindowsBat/blob/main/Build/MossFrp_Client.bat"
     :param code: mossfrp穿透码
     :return: 解码结果字典
     """
@@ -343,17 +306,6 @@ def mossfrp_code_parser(code: str) -> dict:
 def parse_args(args: list) -> dict:
     """
     fcm主程序解析传入参数主函数
-    支持命令行参数和交互式配置两种方式
-
-    支持的子命令：
-    - addserver/as: 添加frp服务端
-    - addtunnel/at: 添加frp隧道
-    - mossfrp/mf: 使用mossfrp穿透码创建隧道
-    - listservers/ls: 列出所有服务端
-    - listtunnels/lt: 列出所有隧道
-    - delserver/ds: 删除服务端
-    - deltunnel/dt: 删除隧道
-
     :param args: 传入参数，一般通过sys.argv[1:]获取
     :return: 向daemon进程发送的json数据字典
     """
