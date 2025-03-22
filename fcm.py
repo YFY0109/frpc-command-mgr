@@ -90,7 +90,40 @@ class InterfaceOP:
         addserver的交互式输入
         :return: 结果
         """
-        pass
+        result = {"opcode": "addserver"}
+        
+        while True:
+            server_pos = input("请输入服务器地址(IP或域名): ").strip()
+            if Verifier.verify_pos(server_pos):
+                result["server_pos"] = server_pos
+                break
+            print("无效的服务器地址，请重新输入")
+        
+        while True:
+            try:
+                bind_port = input("请输入服务端口 [7000]: ").strip()
+                if not bind_port:
+                    bind_port = "7000"
+                if Verifier.verify_port(bind_port):
+                    result["bind_port"] = int(bind_port)
+                    break
+                raise ValueError()
+            except ValueError:
+                print("无效的端口号，请输入1-65535之间的数字")
+        
+        token = input("请输入服务端token []: ").strip()
+        result["token"] = token
+        
+        name = input(f"请输入服务端名称 [{server_pos}]: ").strip()
+        result["name"] = name if name else server_pos
+        
+        user = input(f"请输入用户标识 [{socket.gethostname()}.{os.getlogin()}]: ").strip()
+        result["user"] = user if user else f"{socket.gethostname()}.{os.getlogin()}"
+        
+        set_default = input("是否设置为默认服务端? (y/N): ").strip().lower()
+        result["set_default"] = set_default in ['y', 'yes']
+        
+        return result
 
     @staticmethod
     def addtunnel() -> dict:
@@ -98,11 +131,120 @@ class InterfaceOP:
         addtunnel的交互式输入
         :return: 结果
         """
-        pass
+        result = {"opcode": "addtunnel"}
+        
+        # 获取本地地址和端口
+        while True:
+            local = input("请输入本地端口或IP:端口 (如: 8080 或 192.168.1.1:8080): ").strip()
+            if Verifier.verify_port(local):
+                result["local_ip"] = "127.0.0.1"
+                result["local_port"] = int(local)
+                break
+            elif Verifier.verify_ip_with_port(local):
+                ip, port = local.split(":")
+                result["local_ip"] = ip
+                result["local_port"] = int(port)
+                break
+            print("无效的本地地址或端口，请重新输入")
+        
+        # 获取远程端口
+        while True:
+            remote_port = input(f"请输入远程端口 [{result['local_port']}]: ").strip()
+            if not remote_port:
+                result["remote_port"] = result["local_port"]
+                break
+            if Verifier.verify_port(remote_port):
+                result["remote_port"] = int(remote_port)
+                break
+            print("无效的端口号，请输入1-65535之间的数字")
+        
+        # 获取远程服务器名称
+        remote_name = input("请输入远程服务器名称 [default]: ").strip()
+        result["remote_name"] = remote_name if remote_name else "default"
+        
+        # 获取协议类型
+        while True:
+            protocol = input("请输入协议类型 (tcp/udp) [tcp]: ").strip().lower()
+            if not protocol:
+                protocol = "tcp"
+            if protocol in ["tcp", "udp"]:
+                result["protocol"] = protocol
+                break
+            print("无效的协议类型，请输入tcp或udp")
+        
+        # 获取隧道名称
+        name = input("请输入隧道名称 []: ").strip()
+        result["name"] = name
+        
+        return result
 
     @staticmethod
     def mossfrp(code: str) -> dict:
-        pass
+        """
+        mossfrp的交互式输入
+        :param code: mossfrp穿透码
+        :return: 结果
+        """
+        result = {"opcode": "mossfrp", "token": code}
+        
+        # 解析穿透码
+        mossfrp_info = mossfrp_code_parser(code)
+        print("\n穿透码信息:")
+        print(f"服务器号: {mossfrp_info['服务器号']}")
+        print(f"域名地址: {mossfrp_info['域名地址']}")
+        print(f"服务端口: {mossfrp_info['服务端口']}")
+        print(f"可用端口范围: {mossfrp_info['开放端口']}\n")
+        
+        # 获取本地地址和端口
+        while True:
+            local = input("请输入本地端口或IP:端口 (如: 8080 或 192.168.1.1:8080): ").strip()
+            if Verifier.verify_port(local):
+                result["local_ip"] = "127.0.0.1"
+                result["local_port"] = int(local)
+                break
+            elif Verifier.verify_ip_with_port(local):
+                ip, port = local.split(":")
+                result["local_ip"] = ip
+                result["local_port"] = int(port)
+                break
+            print("无效的本地地址或端口，请重新输入")
+        
+        # 获取远程端口号
+        remote_ports = [int(p) for p in mossfrp_info['开放端口'].split('-')]
+        while True:
+            port_num = input(f"请选择远程端口号 (1-10) [1]: ").strip()
+            if not port_num:
+                result["remote_port"] = remote_ports[0]
+                break
+            try:
+                port_num = int(port_num)
+                if 1 <= port_num <= 10:
+                    result["remote_port"] = remote_ports[port_num - 1]
+                    break
+            except ValueError:
+                pass
+            print("无效的端口号，请输入1-10之间的数字")
+        
+        # 获取协议类型
+        while True:
+            protocol = input("请输入协议类型 (tcp/udp) [tcp]: ").strip().lower()
+            if not protocol:
+                protocol = "tcp"
+            if protocol in ["tcp", "udp"]:
+                result["protocol"] = protocol
+                break
+            print("无效的协议类型，请输入tcp或udp")
+        
+        # 获取隧道名称
+        name = input("请输入隧道名称 []: ").strip()
+        result["name"] = name
+        
+        result.update({
+            'bind_port': mossfrp_info['服务端口'],
+            'remote_name': 'default'
+        })
+        
+        return result
 
 
 def mossfrp_code_parser(code: str) -> dict:
@@ -293,18 +435,18 @@ def parse_args(args: list) -> dict:
 
 
 if __name__ == "__main__":
-    # main_args = sys.argv[1:]
-    main_args = [
-        "addserver",
-        "sh5.mossfrp.cn",
-        "-p",
-        "15366",
-        "-u",
-        "123",
-        "-n",
-        "test_server",
-        "-t",
-        "test_token",
-        "--set-default",
-    ]
+    main_args = sys.argv[1:]
+    # main_args = [
+    #     "addserver",
+    #     "sh5.mossfrp.cn",
+    #     "-p",
+    #     "15366",
+    #     "-u",
+    #     "123",
+    #     "-n",
+    #     "test_server",
+    #     "-t",
+    #     "test_token",
+    #     "--set-default",
+    # ]
     print(parse_args(main_args))
